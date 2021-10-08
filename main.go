@@ -7,6 +7,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"time"
@@ -23,11 +24,11 @@ var (
 )
 
 func main() {
-	flag.StringVar(&projectID, "project-id", "", "[Required] Set a project ID. You can find it by executing `gcloud projects list`.")
+	flag.StringVar(&projectID, "project-id", "", "[Required] Set a project ID. You can find it by executing 'gcloud projects list'.")
 	flag.StringVar(&serviceID, "service-id", uuidString(), "[Optinal] Set a service ID which should be unique.")
 	flag.StringVar(&serviceName, "service-name", defaultServiceName(), "[Optinal] Set a service name.")
-	flag.StringVar(&urlMapName, "url-map-name", "", "[Required] Set a url map name. You can find it by executing `gcloud compute url-maps list`.")
-	flag.StringVar(&token, "token", "", "[Required] Set an access token. You can get access token by executing `gcloud auth print-access-token`")
+	flag.StringVar(&urlMapName, "url-map-name", "", "[Required] Set a url map name(load balancing name). You can find it by executing 'gcloud compute url-maps list'.")
+	flag.StringVar(&token, "token", "", "[Required] Set an access token. You can get access token by executing 'gcloud auth print-access-token'")
 	flag.Parse()
 
 	if projectID == "" {
@@ -47,6 +48,8 @@ func main() {
 		log.Fatal(err)
 	}
 	fmt.Println(`Succeeded!`)
+	fmt.Println(`Please visit and check the created service and SLO at https://console.cloud.google.com/monitoring/services`)
+	fmt.Println(`They will appear in a few minutes`)
 }
 
 func uuidString() string {
@@ -99,6 +102,11 @@ func createService() error {
 
 	if res.StatusCode >= 300 {
 		log.Printf("GCP API status code: %d\n", res.StatusCode)
+		b, err := ioutil.ReadAll(res.Body)
+		if err != nil {
+			return fmt.Errorf("failed to read create service response from GCP : %w", err)
+		}
+		log.Printf("service creation error details: %s", b)
 		return errors.New(`failed to create service`)
 	}
 	return nil
@@ -160,6 +168,11 @@ metric.label."response_code_class"<"300"`, urlMapName),
 
 	if res.StatusCode >= 300 {
 		log.Printf("GCP API status code: %d\n", res.StatusCode)
+		b, err := ioutil.ReadAll(res.Body)
+		if err != nil {
+			return fmt.Errorf("failed to read create slo response from GCP : %w", err)
+		}
+		log.Printf("slo creation error details: %s", b)
 		return errors.New(`failed to create slo`)
 	}
 	return nil
