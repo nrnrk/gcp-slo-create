@@ -1,3 +1,15 @@
+## 概要
+
+* 以下の指標の GCP の SLO を作成するツールです
+    * 可用性 99%
+        * 可用性 = (2xx レスポンス) / (2xx レスポンス + 5xx レスポンス)
+
+## 前提条件
+
+* [Cloud Load Balancing](https://console.cloud.google.com/net-services/loadbalancing/loadBalancers/list) を利用している前提になります
+    * 対象となる Cloud Load Balancing の名称(URL マップ名称)を準備してください。(Quick Start の`<your-load-balancing-name>`に入れてください)
+* [Go のインストール](https://golang.org/doc/install)
+    * `go version` が動作すればOKです
 ## Quick Start
 
 ```shell
